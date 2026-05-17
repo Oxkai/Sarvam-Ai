@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Code2,
   Plus,
   Minus,
   Equal,
@@ -351,14 +350,6 @@ function PageHeader({
         leftIcon={<Plus size={ICON.button} strokeWidth={ICON.strokeWidth} aria-hidden />}
       >
         New Chat
-      </Button>
-
-      <Button
-        variant="outlined"
-        size="sm"
-        leftIcon={<Code2 size={ICON.button} strokeWidth={ICON.strokeWidth} aria-hidden />}
-      >
-        Get Code
       </Button>
     </header>
   );

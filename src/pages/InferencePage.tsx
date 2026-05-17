@@ -14,6 +14,9 @@ import {
   Check,
   Sparkles,
   Trash2,
+  Settings,
+  X,
+  Info,
 } from 'lucide-react';
 import Layout from '../components/shared/Layout';
 import Button from '../components/shared/Button';
@@ -43,6 +46,18 @@ const ERROR_AT = 0.45;
 const MODELS = [
   { value: 'Sarvam 30B', description: 'Fast & efficient' },
   { value: 'Sarvam 105B', description: 'Best quality, deeper reasoning' },
+];
+
+const CONTEXT_WINDOWS = [
+  { value: '32K', description: 'Lower latency' },
+  { value: '64K', description: 'Balanced' },
+  { value: '128K', description: 'Long documents' },
+];
+
+const REASONING_EFFORTS = [
+  { value: 'Low', description: 'Quickest replies' },
+  { value: 'Medium', description: 'Balanced quality and speed' },
+  { value: 'High', description: 'Deepest reasoning' },
 ];
 
 type ModelHue = 'lavender' | 'peach' | 'rose' | 'mint' | 'sand' | 'sky';
@@ -82,6 +97,12 @@ export default function InferencePage() {
   const [copied, setCopied] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [model, setModel] = useState('Sarvam 105B');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [contextWindow, setContextWindow] = useState('128K');
+  const [systemInstructions, setSystemInstructions] = useState('');
+  const [temperature, setTemperature] = useState(0.8);
+  const [maxTokens, setMaxTokens] = useState(4096);
+  const [reasoningEffort, setReasoningEffort] = useState('Medium');
 
   const stream = useStream();
   const metrics = useStreamMetrics();
@@ -142,40 +163,66 @@ export default function InferencePage() {
 
   return (
     <Layout>
-      <PageHeader errorDemo={errorDemo} onErrorDemoChange={setErrorDemo} />
+      <PageHeader
+        errorDemo={errorDemo}
+        onErrorDemoChange={setErrorDemo}
+        settingsOpen={settingsOpen}
+        onSettingsToggle={() => setSettingsOpen((o) => !o)}
+      />
 
       <div
-        className="flex-col md:flex-row"
         style={{ display: 'flex', flex: 1, minHeight: 0 }}
       >
-        <PromptColumn
-          inputMode={inputMode}
-          onModeChange={setInputMode}
-          prompt={prompt}
-          onPromptChange={setPrompt}
-          audio={audio}
-          isStreaming={isStreaming}
-          canRun={canRun}
-          onRun={handleStart}
-          onStop={handleStop}
+        <div
+          className="flex-col md:flex-row"
+          style={{ display: 'flex', flex: 1, minHeight: 0, minWidth: 0 }}
+        >
+          <PromptColumn
+            inputMode={inputMode}
+            onModeChange={setInputMode}
+            prompt={prompt}
+            onPromptChange={setPrompt}
+            audio={audio}
+            isStreaming={isStreaming}
+            canRun={canRun}
+            onRun={handleStart}
+            onStop={handleStop}
+            model={model}
+            onModelChange={setModel}
+          />
+
+          <OutputColumn
+            status={stream.status}
+            output={stream.output}
+            errorMessage={stream.error}
+            tokenCount={metrics.tokenCount}
+            tokensPerSecond={metrics.tokensPerSecond}
+            elapsed={elapsed}
+            isStreaming={isStreaming}
+            hasOutput={hasOutput}
+            copied={copied}
+            onCopy={handleCopy}
+            onRegenerate={handleStart}
+            onReset={handleReset}
+            model={model}
+          />
+        </div>
+
+        <ChatSettingsPanel
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
           model={model}
           onModelChange={setModel}
-        />
-
-        <OutputColumn
-          status={stream.status}
-          output={stream.output}
-          errorMessage={stream.error}
-          tokenCount={metrics.tokenCount}
-          tokensPerSecond={metrics.tokensPerSecond}
-          elapsed={elapsed}
-          isStreaming={isStreaming}
-          hasOutput={hasOutput}
-          copied={copied}
-          onCopy={handleCopy}
-          onRegenerate={handleStart}
-          onReset={handleReset}
-          model={model}
+          contextWindow={contextWindow}
+          onContextWindowChange={setContextWindow}
+          systemInstructions={systemInstructions}
+          onSystemInstructionsChange={setSystemInstructions}
+          temperature={temperature}
+          onTemperatureChange={setTemperature}
+          maxTokens={maxTokens}
+          onMaxTokensChange={setMaxTokens}
+          reasoningEffort={reasoningEffort}
+          onReasoningEffortChange={setReasoningEffort}
         />
       </div>
     </Layout>
@@ -189,9 +236,13 @@ export default function InferencePage() {
 function PageHeader({
   errorDemo,
   onErrorDemoChange,
+  settingsOpen,
+  onSettingsToggle,
 }: {
   errorDemo: boolean;
   onErrorDemoChange: (v: boolean) => void;
+  settingsOpen: boolean;
+  onSettingsToggle: () => void;
 }) {
   return (
     <header
@@ -264,6 +315,30 @@ function PageHeader({
       >
         Get Code
       </Button>
+
+      <button
+        type="button"
+        onClick={onSettingsToggle}
+        aria-label="Chat settings"
+        aria-pressed={settingsOpen}
+        title="Chat settings"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: SPACE[18],
+          height: SPACE[18],
+          borderRadius: RADIUS.pill,
+          border: 'none',
+          backgroundColor: settingsOpen ? COLORS.cream[300] : COLORS.cream[200],
+          color: COLORS.ink[800],
+          cursor: 'pointer',
+          transition: 'background-color 120ms',
+        }}
+        className="hover:opacity-90 focus-visible:outline-none focus-visible:ring-2"
+      >
+        <Settings size={ICON.button} strokeWidth={ICON.strokeWidth} aria-hidden />
+      </button>
     </header>
   );
 }
@@ -1470,6 +1545,396 @@ function ErrorBanner({ message }: { message: string }) {
         >
           {message}
         </p>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Chat Settings — slide-in panel on the right edge of the playground
+// ---------------------------------------------------------------------------
+
+const PANEL_WIDTH = 340;
+
+function ChatSettingsPanel({
+  open,
+  onClose,
+  model,
+  onModelChange,
+  contextWindow,
+  onContextWindowChange,
+  systemInstructions,
+  onSystemInstructionsChange,
+  temperature,
+  onTemperatureChange,
+  maxTokens,
+  onMaxTokensChange,
+  reasoningEffort,
+  onReasoningEffortChange,
+}: {
+  open: boolean;
+  onClose: () => void;
+  model: string;
+  onModelChange: (m: string) => void;
+  contextWindow: string;
+  onContextWindowChange: (v: string) => void;
+  systemInstructions: string;
+  onSystemInstructionsChange: (v: string) => void;
+  temperature: number;
+  onTemperatureChange: (v: number) => void;
+  maxTokens: number;
+  onMaxTokensChange: (v: number) => void;
+  reasoningEffort: string;
+  onReasoningEffortChange: (v: string) => void;
+}) {
+  return (
+    <div
+      style={{
+        flexShrink: 0,
+        width: open ? PANEL_WIDTH : 0,
+        overflow: 'hidden',
+        transition: 'width 240ms ease',
+      }}
+      aria-hidden={!open}
+    >
+    <aside
+      role="complementary"
+      aria-label="Chat settings"
+      style={{
+        width: PANEL_WIDTH,
+        height: '100%',
+        backgroundColor: COLORS.surface,
+        borderLeft: `1px solid ${COLORS.border.DEFAULT}`,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingLeft: SPACE[8],
+          paddingRight: SPACE[8],
+          paddingTop: SPACE[8],
+          paddingBottom: SPACE[6],
+          flexShrink: 0,
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            fontFamily: FONTS.sans,
+            fontSize: FONT_SIZE.lg,
+            fontWeight: FONT_WEIGHT.medium,
+            color: COLORS.ink[900],
+            letterSpacing: LETTER_SPACING.normal,
+            lineHeight: LINE_HEIGHT.tight,
+          }}
+        >
+          Chat Settings
+        </h3>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close settings"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: SPACE[18],
+            height: SPACE[18],
+            borderRadius: RADIUS.pill,
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: COLORS.ink[800],
+            cursor: 'pointer',
+          }}
+          className="hover:bg-tatva-surface-secondary focus-visible:outline-none focus-visible:ring-2"
+        >
+          <X size={16} strokeWidth={ICON.strokeWidth} aria-hidden />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div
+        className="scrollbar-hide"
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
+          paddingLeft: SPACE[8],
+          paddingRight: SPACE[8],
+          paddingBottom: SPACE[8],
+          paddingTop: SPACE[8],
+          display: 'flex',
+          flexDirection: 'column',
+          gap: SPACE[10],
+        }}
+      >
+        <SettingField label="Model">
+          <Dropdown
+            value={model}
+            options={MODELS}
+            onChange={onModelChange}
+            size="sm"
+            leading={<AccentOrb hue={hueForModel(model)} size={14} />}
+          />
+        </SettingField>
+
+        <SettingField label="Context window">
+          <Dropdown
+            value={contextWindow}
+            options={CONTEXT_WINDOWS}
+            onChange={onContextWindowChange}
+            size="sm"
+          />
+        </SettingField>
+
+        <SettingField label="System instructions">
+          <textarea
+            value={systemInstructions}
+            onChange={(e) => onSystemInstructionsChange(e.target.value)}
+            placeholder="You are a helpful assistant…"
+            rows={3}
+            className="scrollbar-hide"
+            style={{
+              width: '100%',
+              minHeight: SPACE[20],
+              paddingLeft: SPACE[6],
+              paddingRight: SPACE[6],
+              paddingTop: SPACE[4],
+              paddingBottom: SPACE[4],
+              borderRadius: RADIUS.md,
+              border: `1px solid ${COLORS.border.DEFAULT}`,
+              backgroundColor: 'transparent',
+              fontFamily: FONTS.sans,
+              fontSize: FONT_SIZE.md,
+              color: COLORS.ink[900],
+              outline: 'none',
+              resize: 'vertical',
+              boxSizing: 'border-box',
+            }}
+          />
+        </SettingField>
+
+        <SliderField
+          label="Temperature"
+          value={temperature}
+          min={0}
+          max={2}
+          step={0.1}
+          decimals={1}
+          inputSize={4}
+          minLabel="Precise"
+          maxLabel="Creative"
+          onChange={onTemperatureChange}
+        />
+
+        <SliderField
+          label="Max tokens"
+          value={maxTokens}
+          min={1}
+          max={4096}
+          step={1}
+          decimals={0}
+          inputSize={5}
+          minLabel="1"
+          maxLabel="4,096"
+          onChange={onMaxTokensChange}
+        />
+
+        <SettingField label="Reasoning effort">
+          <Dropdown
+            value={reasoningEffort}
+            options={REASONING_EFFORTS}
+            onChange={onReasoningEffortChange}
+            size="sm"
+          />
+        </SettingField>
+      </div>
+    </aside>
+    </div>
+  );
+}
+
+function SettingField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[2] }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[1] }}>
+        <label
+          style={{
+            fontFamily: FONTS.sans,
+            fontSize: FONT_SIZE.sm,
+            fontWeight: FONT_WEIGHT.regular,
+            color: COLORS.ink[900],
+            lineHeight: LINE_HEIGHT.tight,
+          }}
+        >
+          {label}
+        </label>
+        <Info
+          size={12}
+          strokeWidth={ICON.strokeWidth}
+          aria-hidden
+          style={{ color: COLORS.ink[500] }}
+        />
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function SliderField({
+  label,
+  value,
+  min,
+  max,
+  step,
+  decimals,
+  inputSize,
+  minLabel,
+  maxLabel,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  decimals: number;
+  inputSize: number;
+  minLabel: string;
+  maxLabel: string;
+  onChange: (v: number) => void;
+}) {
+  const clamp = (n: number) => Math.max(min, Math.min(max, n));
+  const filledPct = ((value - min) / (max - min)) * 100;
+  const display = decimals > 0 ? value.toFixed(decimals) : String(Math.round(value));
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[2] }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[1] }}>
+        <label
+          style={{
+            fontFamily: FONTS.sans,
+            fontSize: FONT_SIZE.sm,
+            fontWeight: FONT_WEIGHT.regular,
+            color: COLORS.ink[900],
+            lineHeight: LINE_HEIGHT.tight,
+          }}
+        >
+          {label}
+        </label>
+        <Info
+          size={12}
+          strokeWidth={ICON.strokeWidth}
+          aria-hidden
+          style={{ color: COLORS.ink[500] }}
+        />
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[6] }}>
+        <div style={{ flex: 1, minWidth: 0, position: 'relative', height: SPACE[10] }}>
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: 0,
+              right: 0,
+              transform: 'translateY(-50%)',
+              height: SPACE[4],
+              borderRadius: RADIUS.pill,
+              backgroundColor: COLORS.cream[200],
+              overflow: 'hidden',
+            }}
+          >
+            <span
+              style={{
+                display: 'block',
+                height: '100%',
+                width: `${filledPct}%`,
+                backgroundColor: COLORS.ink[400],
+              }}
+            />
+          </span>
+          <input
+            type="range"
+            value={value}
+            min={min}
+            max={max}
+            step={step}
+            onChange={(e) => onChange(Number(e.target.value))}
+            aria-label={label}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              opacity: 0,
+              cursor: 'pointer',
+              margin: 0,
+            }}
+          />
+          <span
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: `calc(${filledPct}% - 12px)`,
+              transform: 'translateY(-50%)',
+              width: SPACE[12],
+              height: SPACE[8],
+              borderRadius: RADIUS.pill,
+              backgroundColor: COLORS.surface,
+              border: `1px solid ${COLORS.border.strong}`,
+              boxShadow: '0px 0px 18px 0px rgba(0,0,0,0.08)',
+              pointerEvents: 'none',
+            }}
+          />
+        </div>
+        <input
+          size={inputSize}
+          type="text"
+          value={display}
+          onChange={(e) => {
+            const n = Number(e.target.value);
+            if (!Number.isNaN(n)) onChange(clamp(n));
+          }}
+          aria-label={`${label} value`}
+          style={{
+            height: SPACE[12],
+            minWidth: SPACE[12],
+            paddingLeft: SPACE[4],
+            paddingRight: SPACE[4],
+            borderRadius: RADIUS.md,
+            border: `1px solid ${COLORS.border.DEFAULT}`,
+            backgroundColor: COLORS.surface,
+            textAlign: 'center',
+            fontFamily: FONTS.sans,
+            fontSize: FONT_SIZE.md,
+            color: COLORS.ink[900],
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: FONTS.sans, fontSize: FONT_SIZE.xs, color: COLORS.ink[500] }}>
+          {minLabel}
+        </span>
+        <span style={{ fontFamily: FONTS.sans, fontSize: FONT_SIZE.xs, color: COLORS.ink[500] }}>
+          {maxLabel}
+        </span>
       </div>
     </div>
   );
