@@ -1,0 +1,71 @@
+@import "tailwindcss";
+@import "./fonts/sarvam.css";
+
+/*
+ * Global resets only.
+ * Colours, fonts, spacing live in src/constants/ — do not add design tokens here.
+ */
+
+:root {
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.35); }
+  50%      { transform: scaleY(1);    }
+}
+
+body {
+  margin: 0;
+  font-family: "Matter", system-ui, sans-serif;
+  /* 16px matches dashboard.sarvam.ai. Smaller text (12–14px) is set explicitly per component. */
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  /* Default text colour is set by <Layout> from COLORS.ink[700] — keep this file free of hex values. */
+}
+
+/*
+ * Hide all scrollbars app-wide while keeping scrolling functional. Matches
+ * dashboard.sarvam.ai which never shows a visible scrollbar.
+ */
+*::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Keep the existing utility class for components that opt-in explicitly. */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
