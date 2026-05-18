@@ -9,16 +9,16 @@ import {
   Info,
   Turtle,
 } from 'lucide-react';
-import Layout from '../components/shared/Layout';
-import Button from '../components/shared/Button';
-import Dropdown from '../components/shared/Dropdown';
-import Slider from '../components/shared/Slider';
+import Layout from '../../components/layout/Layout';
+import Button from '../../components/ui/Button';
+import Dropdown from '../../components/ui/Dropdown';
+import Slider from '../../components/ui/Slider';
 import TabStrip, {
   TAB_ICON_PROPS,
   type Tab,
-} from '../components/shared/TabStrip';
-import VoiceCard, { type Voice } from '../components/shared/VoiceCard';
-import TextareaCard from '../components/shared/TextareaCard';
+} from '../components/TabStrip';
+import VoiceCard, { type Voice } from '../components/VoiceCard';
+import TextareaCard from '../../components/ui/TextareaCard';
 import {
   COLORS,
   FONTS,
@@ -29,7 +29,7 @@ import {
   LINE_HEIGHT,
   RADIUS,
   SPACE,
-} from '../constants';
+} from '../../constants';
 
 // ===========================================================================
 // Static fixture data — replace with real Sarvam responses / inference logic

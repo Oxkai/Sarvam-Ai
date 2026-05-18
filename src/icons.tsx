@@ -64,3 +64,59 @@ export function HomeIcon({
     </svg>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Sarvam monogram — stylised 8-fold lotus mark, drawn as four overlapping
+// lens shapes with a small diamond at the centre. Used as a hero glyph on
+// empty states (rendered in white over a gradient sphere).
+// ---------------------------------------------------------------------------
+
+export function SarvamMonogram({
+  size = 64,
+  strokeWidth = 3,
+  ...rest
+}: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      {...rest}
+    >
+      {/* Four overlapping lens shapes rotated 0 / 45 / 90 / 135 */}
+      <ellipse cx="50" cy="50" rx="38" ry="13" />
+      <ellipse cx="50" cy="50" rx="13" ry="38" />
+      <ellipse
+        cx="50"
+        cy="50"
+        rx="38"
+        ry="13"
+        transform="rotate(45 50 50)"
+      />
+      <ellipse
+        cx="50"
+        cy="50"
+        rx="38"
+        ry="13"
+        transform="rotate(-45 50 50)"
+      />
+      {/* Central diamond */}
+      <rect
+        x="45"
+        y="45"
+        width="10"
+        height="10"
+        transform="rotate(45 50 50)"
+        fill="currentColor"
+        stroke="none"
+      />
+    </svg>
+  );
+}

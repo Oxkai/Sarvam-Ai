@@ -72,10 +72,14 @@ export function useStream(): UseStreamReturn {
           try {
             const json = JSON.parse(trimmed.slice(5).trim()) as { token: string };
             const token = json.token;
-            onTokenRef.current?.(token);
+            // Count only content tokens, not whitespace runs — matches how
+            // real LLM token counters behave for end users.
+            if (!/^\s+$/.test(token)) onTokenRef.current?.(token);
+            // Append the token verbatim so whitespace / newlines from the
+            // server stream survive intact in the rendered output.
             setState((prev) => ({
               ...prev,
-              output: prev.output + (prev.output ? ' ' : '') + token,
+              output: prev.output + token,
             }));
           } catch {
             // malformed chunk — skip

@@ -38,6 +38,76 @@ html, body, #root {
   50%      { transform: scaleY(1);    }
 }
 
+@keyframes recordingDot {
+  0%, 100% { opacity: 1;   transform: scale(1);   }
+  50%      { opacity: 0.4; transform: scale(0.85);}
+}
+
+/*
+ * Settings panel slider — native <input type="range"> styled 1:1 with the
+ * Sarvam Chat Settings track / thumb. The filled portion is driven by a CSS
+ * variable `--filled-pct` set inline from JS so we get a proper two-tone
+ * track even on plain <input type="range">.
+ */
+.settings-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 24px;
+  cursor: pointer;
+}
+.settings-slider:focus { outline: none; }
+
+.settings-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    #b3b3b3 0%,
+    #b3b3b3 var(--filled-pct, 0%),
+    #e5e5e5 var(--filled-pct, 0%),
+    #e5e5e5 100%
+  );
+}
+.settings-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    #b3b3b3 0%,
+    #b3b3b3 var(--filled-pct, 0%),
+    #e5e5e5 var(--filled-pct, 0%),
+    #e5e5e5 100%
+  );
+}
+.settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -5px;
+  width: 24px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.08);
+  cursor: grab;
+}
+.settings-slider:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+.settings-slider::-moz-range-thumb {
+  width: 24px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.08);
+  cursor: grab;
+}
+.settings-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(20, 20, 20, 0.15);
+}
+
 body {
   margin: 0;
   font-family: "Matter", system-ui, sans-serif;

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { CloudUpload } from 'lucide-react';
-import Layout from '../components/shared/Layout';
-import SegmentedControl from '../components/shared/SegmentedControl';
-import Chip from '../components/shared/Chip';
+import Layout from '../../components/layout/Layout';
+import SegmentedControl from '../../components/ui/SegmentedControl';
+import Chip from '../../components/ui/Chip';
 import {
   COLORS,
   FONTS,
@@ -13,7 +13,7 @@ import {
   LINE_HEIGHT,
   RADIUS,
   SPACE,
-} from '../constants';
+} from '../../constants';
 
 type ExampleHue = 'green' | 'indigo' | 'orange' | 'coral' | 'red';
 type Example = {

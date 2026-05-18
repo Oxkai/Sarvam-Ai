@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Code2, ThumbsUp, ThumbsDown, Copy } from 'lucide-react';
-import Layout from '../components/shared/Layout';
-import Button from '../components/shared/Button';
-import Dropdown from '../components/shared/Dropdown';
-import Switch from '../components/shared/Switch';
+import Layout from '../../components/layout/Layout';
+import Button from '../../components/ui/Button';
+import Dropdown from '../../components/ui/Dropdown';
+import Switch from '../../components/ui/Switch';
 import FloatingActions, {
   FloatingIconButton,
-} from '../components/shared/FloatingActions';
-import TextareaCard from '../components/shared/TextareaCard';
+} from '../../components/ui/FloatingActions';
+import TextareaCard from '../../components/ui/TextareaCard';
 import {
   COLORS,
   FONTS,
@@ -18,7 +18,7 @@ import {
   LINE_HEIGHT,
   RADIUS,
   SPACE,
-} from '../constants';
+} from '../../constants';
 
 const SOURCE = `Hey, talk like you normally do.
 

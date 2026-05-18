@@ -13,8 +13,10 @@ Prompt caching, speculative decoding, and batched inference are all supported ou
 For enterprise deployments, on-device inference is available for select model sizes, enabling air-gapped and privacy-sensitive workloads without sending data to the cloud.`;
 
 function tokenize(text: string): string[] {
-  // Split on spaces but keep punctuation attached to words, matching real tokeniser output shape
-  return text.match(/\S+|\n/g) ?? [];
+  // Match either a run of whitespace OR a run of non-whitespace. Keeping
+  // whitespace as its own token lets the consumer reassemble the response
+  // verbatim — including paragraph breaks — by concatenating tokens in order.
+  return text.match(/\s+|\S+/g) ?? [];
 }
 
 export function createMockStream(

@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import Layout from '../components/shared/Layout';
-import PageHeader from '../components/shared/PageHeader';
-import DashboardSection from '../components/shared/DashboardSection';
-import ListItem from '../components/shared/ListItem';
-import { SPACE } from '../constants';
+import Layout from '../../components/layout/Layout';
+import PageHeader from '../../components/layout/PageHeader';
+import DashboardSection from '../../components/ui/DashboardSection';
+import ListItem from '../../components/ui/ListItem';
+import { SPACE } from '../../constants';
 
 const INFERENCE_FEATURES = [
   {
