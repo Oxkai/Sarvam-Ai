@@ -39,14 +39,17 @@ export default function SettingsSlider({
   const display = format ? format(value) : String(value);
   const [draft, setDraft] = useState(display);
 
+  // Sync the editable draft back to the formatted value whenever the slider
+  // moves the source value (e.g. user drags the range while the input is blurred).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing external value→local draft
     setDraft(display);
   }, [display]);
 
   const filledPct = ((value - min) / Math.max(1e-9, max - min)) * 100;
 
   function commit() {
-    const cleaned = draft.replace(/[^\d.\-]/g, '');
+    const cleaned = draft.replace(/[^\d.-]/g, '');
     const parsed = Number(cleaned);
     if (!Number.isFinite(parsed)) {
       setDraft(display);

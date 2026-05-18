@@ -50,9 +50,11 @@ export default function AudioPromptCard({
   const micLevels = useMicLevels(isRecording, 80);
   const hasTranscript = transcript.trim().length > 0;
 
-  // Duration ticker
+  // Duration ticker — explicit reset on stop so the next recording starts at
+  // 00:00 instead of flashing the previous take's time for 100ms.
   useEffect(() => {
     if (!isRecording) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset on recording stop
       setDuration(0);
       return;
     }

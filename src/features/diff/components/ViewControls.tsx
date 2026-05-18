@@ -51,7 +51,6 @@ export default function ViewControls({
         paddingRight: SPACE[12],
         paddingTop: SPACE[6],
         paddingBottom: SPACE[6],
-        borderTop: `1px solid ${COLORS.border.DEFAULT}`,
         borderBottom: `1px solid ${COLORS.border.DEFAULT}`,
         flexShrink: 0,
         flexWrap: 'wrap',

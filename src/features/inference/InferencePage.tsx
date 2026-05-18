@@ -48,8 +48,12 @@ export default function InferencePage() {
   const metrics = useStreamMetrics();
   const audio = useAudioRecording();
 
-  // Wire stream tokens → metrics
-  stream.setOnToken(metrics.recordToken);
+  // Wire stream tokens → metrics. Re-wires only when the callback identity
+  // changes (which it doesn't, since recordToken is useCallback-stable).
+  useEffect(() => {
+    stream.setOnToken(metrics.recordToken);
+    return () => stream.setOnToken(null);
+  }, [stream, metrics.recordToken]);
 
   // -------- derived --------
   const isStreaming = stream.status === 'streaming';
@@ -58,10 +62,13 @@ export default function InferencePage() {
   const canRun = !isStreaming && promptText.trim().length > 0;
 
   // -------- effects --------
-  // Live elapsed-time counter while streaming
+  // Live elapsed-time counter while streaming. The 0-reset is an explicit
+  // synchronization point: the previous run's timer must clear before the
+  // interval fires its first 100ms tick, otherwise the UI flashes stale time.
   useEffect(() => {
     if (!isStreaming) return;
     const start = performance.now();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset on stream start
     setElapsed(0);
     const id = window.setInterval(() => {
       setElapsed((performance.now() - start) / 1000);
@@ -69,8 +76,10 @@ export default function InferencePage() {
     return () => window.clearInterval(id);
   }, [isStreaming]);
 
-  // Push audio transcript into the prompt buffer so the user can edit & re-run
+  // Push audio transcript into the prompt buffer so toggling back to text mode
+  // preserves what was just dictated and lets the user edit before re-running.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing transcript→prompt is intentional cross-state coupling
     if (audio.transcript) setPrompt(audio.transcript);
   }, [audio.transcript]);
 

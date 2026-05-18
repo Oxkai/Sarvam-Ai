@@ -13,10 +13,8 @@ import Layout from '../../components/layout/Layout';
 import Button from '../../components/ui/Button';
 import Dropdown from '../../components/ui/Dropdown';
 import Slider from '../../components/ui/Slider';
-import TabStrip, {
-  TAB_ICON_PROPS,
-  type Tab,
-} from '../components/TabStrip';
+import TabStrip, { type Tab } from '../components/TabStrip';
+import { TAB_ICON_PROPS } from '../components/tabIcon';
 import VoiceCard, { type Voice } from '../components/VoiceCard';
 import TextareaCard from '../../components/ui/TextareaCard';
 import {

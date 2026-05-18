@@ -1,73 +1,70 @@
-# React + TypeScript + Vite
+# Sarvam Platform — frontend assignment
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite app implementing the Sarvam AI frontend-intern brief:
 
-Currently, two official plugins are available:
+- **Inference Playground** (`/inference`) — streaming responses with multi-modal (text / voice) input, live token + tokens-per-second metrics, and graceful mid-stream error handling.
+- **Model Output Diff** (`/diff`) — side-by-side and unified comparison of two model outputs with a hand-rolled, token-level LCS diff.
+- **Home** (`/`) — landing page surfacing both routes.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The deployment also serves three Sarvam-dashboard clone pages (`/playground`, `/translate`, `/vision`) used as visual reference for the design system; they are not part of the assignment work.
 
-## React Compiler
+## Getting started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open the printed local URL (Vite picks the next free port if 5173 is busy).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Vite dev server with HMR |
+| `npm run build` | `tsc -b` type-check + production build into `dist/` |
+| `npm run preview` | Serve the production build locally |
+| `npm run lint` | ESLint over all `.ts` / `.tsx` files |
+
+## Project layout
+
 ```
+src/
+├── App.tsx, main.tsx       # router + entry
+├── index.css                # global resets + slider styling (no design tokens)
+├── constants/               # design tokens — colors, fonts, spacing, sizes
+├── components/
+│   ├── layout/              # Layout, Sidebar, PageHeader
+│   └── ui/                  # Button, Card, ListItem, Chip, Slider, etc.
+├── features/
+│   ├── home/                # HomePage
+│   ├── inference/           # Part A — playground page, hooks, mock stream
+│   │   ├── hooks/           # useStream, useStreamMetrics, useAudioRecording, useMicLevels
+│   │   ├── lib/mockStream.ts
+│   │   └── components/
+│   ├── diff/                # Part B — diff page, LCS implementation
+│   │   ├── lib/             # tokenize, lcs, parallelStream
+│   │   └── components/
+│   └── NotFoundPage.tsx     # /* catch-all
+├── clones/                  # visual references to dashboard.sarvam.ai
+└── fonts/sarvam.css         # self-hosted Matter + Season Mix declarations
+```
+
+## Design system
+
+All tokens live in [`src/constants/`](src/constants/) and are imported by every component. **Never hardcode a hex or font stack** — import from `COLORS`, `FONTS`, `FONT_SIZE`, `FONT_WEIGHT`, `SPACE`, `RADIUS`, `ICON`, `SIZE`.
+
+Fonts (Matter + Season Mix) are self-hosted under [`public/fonts/`](public/fonts/) and registered in [`src/fonts/sarvam.css`](src/fonts/sarvam.css). The two regular-weight files are preloaded from `index.html`.
+
+## Streaming
+
+The inference playground writes the Fetch + `ReadableStream` loop by hand — no streaming SDK. The mock backend lives in [`features/inference/lib/mockStream.ts`](src/features/inference/lib/mockStream.ts) and emits SSE-style frames with a deliberate failure mode that the **Error demo** toggle in the header triggers, so the partial-output + retry behavior can be exercised live.
+
+## Diff algorithm
+
+The diff is computed by an LCS dynamic-programming table with backtracking, in [`features/diff/lib/lcs.ts`](src/features/diff/lib/lcs.ts). Shared prefix and suffix are trimmed first so the DP only runs on the changed middle. Time and space complexity are O(n·m); for the chat-style outputs this assignment targets (a few hundred tokens) it finishes in well under a millisecond. No third-party diff library is used.
+
+## Deployment
+
+- SPA rewrite + long-lived caching for fonts/assets is configured in [`vercel.json`](vercel.json).
+- The production bundle is ~345 KB JS / 17 KB CSS (gzip ~101 KB / 4 KB) plus four self-hosted woff2 fonts.

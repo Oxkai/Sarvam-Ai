@@ -4,7 +4,6 @@ import {
   FONTS,
   FONT_SIZE,
   FONT_WEIGHT,
-  ICON,
   RADIUS,
   SPACE,
 } from '../../constants';
@@ -111,9 +110,3 @@ function TabButton({
   );
 }
 
-// Helper for icon props consistent across all tabs.
-export const TAB_ICON_PROPS = {
-  size: ICON.nav,
-  strokeWidth: ICON.strokeWidth,
-  'aria-hidden': true as const,
-};

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomePage from './features/home/HomePage';
 import InferencePage from './features/inference/InferencePage';
 import DiffPage from './features/diff/DiffPage';
+import NotFoundPage from './features/NotFoundPage';
 import Playground from './clones/pages/Playground';
 import TranslatePage from './clones/pages/TranslatePage';
 import VisionPage from './clones/pages/VisionPage';
@@ -24,6 +25,8 @@ export default function App() {
         <Route path="/playground" element={<Playground />} />
         <Route path="/translate" element={<TranslatePage />} />
         <Route path="/vision" element={<VisionPage />} />
+
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

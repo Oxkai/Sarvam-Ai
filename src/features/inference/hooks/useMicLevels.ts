@@ -27,7 +27,9 @@ export function useMicLevels(enabled: boolean, samples = 80): number[] {
     new Array(samples).fill(FLOOR),
   );
   const samplesRef = useRef(samples);
-  samplesRef.current = samples;
+  useEffect(() => {
+    samplesRef.current = samples;
+  }, [samples]);
 
   useEffect(() => {
     // When recording stops, drain the bars to floor immediately.

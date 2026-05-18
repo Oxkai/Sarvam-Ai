@@ -13,7 +13,6 @@ export interface UseStreamReturn extends StreamState {
   start: (prompt: string, errorAt?: number | null) => Promise<void>;
   stop: () => void;
   reset: () => void;
-  onToken: ((token: string) => void) | null;
   setOnToken: (cb: ((token: string) => void) | null) => void;
 }
 
@@ -105,7 +104,6 @@ export function useStream(): UseStreamReturn {
     start,
     stop,
     reset,
-    onToken: onTokenRef.current,
     setOnToken,
   };
 }
