@@ -43,6 +43,11 @@ html, body, #root {
   50%      { opacity: 0.4; transform: scale(0.85);}
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 /*
  * Settings panel slider — native <input type="range"> styled 1:1 with the
  * Sarvam Chat Settings track / thumb. The filled portion is driven by a CSS

@@ -9,6 +9,7 @@ import {
   LINE_HEIGHT,
   SPACE,
 } from '../../../constants';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 import { useAudioRecording } from '../../inference/hooks/useAudioRecording';
 import { useMicLevels } from '../../inference/hooks/useMicLevels';
 import RoundRunButton from './RoundRunButton';
@@ -41,6 +42,7 @@ export default function PromptPanel({
   const micLevels = useMicLevels(isRecording, 56);
   const canRun = !isRunning && !isRecording && value.trim().length > 0;
   const [duration, setDuration] = useState(0);
+  const isMobile = useIsMobile();
 
   // Pipe live transcript → textarea value so users see words appear as they
   // speak and can edit before running.
@@ -66,12 +68,21 @@ export default function PromptPanel({
     <div
       style={{
         flexShrink: 0,
-        paddingLeft: SPACE[12],
-        paddingRight: SPACE[12],
+        paddingLeft: isMobile ? SPACE[6] : SPACE[12],
+        paddingRight: isMobile ? SPACE[6] : SPACE[12],
         paddingTop: SPACE[6],
-        paddingBottom: SPACE[10],
+        paddingBottom: isMobile ? SPACE[8] : SPACE[10],
         borderTop: `1px solid ${COLORS.border.DEFAULT}`,
         backgroundColor: COLORS.surface,
+        // Pin to viewport bottom on mobile so the input stays reachable while
+        // the page scrolls through the (potentially long) diff cards.
+        ...(isMobile
+          ? {
+              position: 'sticky',
+              bottom: 0,
+              zIndex: 5,
+            }
+          : null),
       }}
     >
       <div

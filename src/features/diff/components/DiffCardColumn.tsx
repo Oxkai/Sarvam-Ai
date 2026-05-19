@@ -11,6 +11,7 @@ import {
   LETTER_SPACING,
   SPACE,
 } from '../../../constants';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 import {
   hueForModel,
   MODELS,
@@ -56,6 +57,7 @@ export default function DiffCardColumn({
   const isLeft = side === 'A';
   const scrollRef = useRef<HTMLDivElement>(null);
   const hue = hueForModel(model);
+  const isMobile = useIsMobile();
 
   // Auto-scroll the diff body while streaming
   useEffect(() => {
@@ -71,8 +73,8 @@ export default function DiffCardColumn({
         display: 'flex',
         flexDirection: 'column',
         minHeight: 0,
-        paddingLeft: isLeft ? SPACE[12] : SPACE[6],
-        paddingRight: isLeft ? SPACE[6] : SPACE[12],
+        paddingLeft: isMobile ? SPACE[6] : isLeft ? SPACE[12] : SPACE[6],
+        paddingRight: isMobile ? SPACE[6] : isLeft ? SPACE[6] : SPACE[12],
         paddingTop: SPACE[6],
       }}
     >

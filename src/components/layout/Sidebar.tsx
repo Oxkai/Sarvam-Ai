@@ -9,12 +9,7 @@ import {
   Zap,
   GitCompare,
 } from 'lucide-react';
-import {
-  createContext,
-  useContext,
-  useState,
-  type ReactNode,
-} from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   COLORS,
   FONTS,
@@ -27,17 +22,17 @@ import {
   SIZE,
 } from '../../constants';
 import { SidebarToggleIcon, HomeIcon } from '../../icons';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { useLayout } from './LayoutContext';
 
 // ---------------------------------------------------------------------------
-// Sidebar — mirrors dashboard.sarvam.ai structure with a collapse toggle.
-// Width animates between SIZE.sidebarWidth (240px) and a 64px icon-only rail.
+// Sidebar — desktop: inline 240px rail with collapse-to-64 toggle.
+//           mobile:  fixed off-canvas drawer (translate-x), opens via menu
+//                    button in page headers, closes via toggle / backdrop / route change.
 // ---------------------------------------------------------------------------
 
 const COLLAPSED_WIDTH = 64;
-
-type SidebarCtx = { collapsed: boolean; toggle: () => void };
-const Ctx = createContext<SidebarCtx>({ collapsed: false, toggle: () => {} });
-const useSidebar = () => useContext(Ctx);
+const MOBILE_WIDTH = 280;
 
 type NavItem = { to: string; label: string; icon: ReactNode; end?: boolean };
 
@@ -59,78 +54,130 @@ const MORE_ITEMS: NavItem[] = [
 ];
 
 export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
-  const toggle = () => setCollapsed((c) => !c);
+  const isMobile = useIsMobile();
+  const { collapsed, toggleCollapsed, mobileOpen, closeMobile } = useLayout();
+  // On mobile the sidebar is always at "expanded" width inside the drawer —
+  // collapsed-rail mode is desktop-only.
+  const effectiveCollapsed = isMobile ? false : collapsed;
+
+  const baseStyle: React.CSSProperties = {
+    width: isMobile
+      ? MOBILE_WIDTH
+      : effectiveCollapsed
+        ? COLLAPSED_WIDTH
+        : SIZE.sidebarWidth,
+    flexShrink: 0,
+    paddingLeft: SPACE[6],
+    paddingRight: SPACE[6],
+    backgroundColor: COLORS.surfaceMuted,
+    fontFamily: FONTS.sans,
+    color: COLORS.ink[700],
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    transition: isMobile
+      ? 'transform 220ms ease'
+      : 'width 200ms ease',
+    overflow: 'hidden',
+  };
+
+  const mobileStyle: React.CSSProperties = isMobile
+    ? {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        zIndex: 50,
+        transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
+        boxShadow: mobileOpen ? '0 10px 30px rgba(0,0,0,0.25)' : 'none',
+      }
+    : {};
 
   return (
-    <Ctx.Provider value={{ collapsed, toggle }}>
-      <aside
-        aria-label="Primary"
-        style={{
-          width: collapsed ? COLLAPSED_WIDTH : SIZE.sidebarWidth,
-          flexShrink: 0,
-          paddingLeft: SPACE[6],
-          paddingRight: SPACE[6],
-          backgroundColor: COLORS.surfaceMuted,
-          fontFamily: FONTS.sans,
-          color: COLORS.ink[700],
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          transition: 'width 200ms ease',
-          overflow: 'hidden',
-        }}
-      >
-        <LogoRow />
+    <aside
+      aria-label="Primary"
+      aria-hidden={isMobile && !mobileOpen}
+      style={{ ...baseStyle, ...mobileStyle }}
+    >
+      <LogoRow
+        isMobile={isMobile}
+        collapsed={effectiveCollapsed}
+        onToggle={isMobile ? closeMobile : toggleCollapsed}
+        toggleLabel={isMobile ? 'Close menu' : effectiveCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      />
 
-        <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-          <div
-            style={{
-              height: '100%',
-              minHeight: 0,
-              overflowY: 'auto',
-              overflowX: 'hidden',
-              paddingTop: SPACE[6],
-              paddingBottom: SPACE[6],
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[10] }}>
-              <div>
-                <NavRow to="/" label="Home" icon={<HomeIcon {...iconProps} />} end />
-              </div>
-
-              <NavGroup label="Playground" items={PLAYGROUND_ITEMS} />
-              <NavGroup label="More" items={MORE_ITEMS} />
-            </div>
-          </div>
-        </div>
-
+      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
         <div
           style={{
-            flexShrink: 0,
+            height: '100%',
+            minHeight: 0,
+            overflowY: 'auto',
+            overflowX: 'hidden',
             paddingTop: SPACE[6],
             paddingBottom: SPACE[6],
-            marginTop: 'auto',
           }}
         >
-          <DocumentationLink />
-        </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[10] }}>
+            <div>
+              <NavRow
+                to="/"
+                label="Home"
+                icon={<HomeIcon {...iconProps} />}
+                collapsed={effectiveCollapsed}
+                end
+              />
+            </div>
 
-        <div style={{ flexShrink: 0 }}>
-          <div style={{ paddingTop: SPACE[4], paddingBottom: SPACE[4] }}>
-            <SignInRow />
+            <NavGroup
+              label="Playground"
+              items={PLAYGROUND_ITEMS}
+              collapsed={effectiveCollapsed}
+            />
+            <NavGroup
+              label="More"
+              items={MORE_ITEMS}
+              collapsed={effectiveCollapsed}
+            />
           </div>
         </div>
-      </aside>
-    </Ctx.Provider>
+      </div>
+
+      <div
+        style={{
+          flexShrink: 0,
+          paddingTop: SPACE[6],
+          paddingBottom: SPACE[6],
+          marginTop: 'auto',
+        }}
+      >
+        <DocumentationLink collapsed={effectiveCollapsed} />
+      </div>
+
+      <div style={{ flexShrink: 0 }}>
+        <div style={{ paddingTop: SPACE[4], paddingBottom: SPACE[4] }}>
+          <SignInRow collapsed={effectiveCollapsed} />
+        </div>
+      </div>
+    </aside>
   );
 }
 
 // ---- Logo row ------------------------------------------------------------
 
-function LogoRow() {
-  const { collapsed } = useSidebar();
+function LogoRow({
+  isMobile,
+  collapsed,
+  onToggle,
+  toggleLabel,
+}: {
+  isMobile: boolean;
+  collapsed: boolean;
+  onToggle: () => void;
+  toggleLabel: string;
+}) {
   const [imgFailed, setImgFailed] = useState(false);
+  // Wordmark hidden when the desktop rail is collapsed; always shown on mobile.
+  const showWordmark = isMobile || !collapsed;
 
   return (
     <div style={{ paddingTop: SPACE[6], paddingBottom: SPACE[6] }}>
@@ -139,12 +186,12 @@ function LogoRow() {
           display: 'flex',
           width: '100%',
           alignItems: 'center',
-          justifyContent: collapsed ? 'center' : 'space-between',
+          justifyContent: showWordmark ? 'space-between' : 'center',
           paddingTop: SPACE[4],
           paddingBottom: SPACE[4],
         }}
       >
-        {!collapsed && (
+        {showWordmark && (
           <div
             style={{
               display: 'flex',
@@ -189,21 +236,28 @@ function LogoRow() {
             </div>
           </div>
         )}
-        <CollapseButton />
+        <CollapseButton onClick={onToggle} label={toggleLabel} expanded={!collapsed} />
       </div>
     </div>
   );
 }
 
-function CollapseButton() {
-  const { collapsed, toggle } = useSidebar();
+function CollapseButton({
+  onClick,
+  label,
+  expanded,
+}: {
+  onClick: () => void;
+  label: string;
+  expanded: boolean;
+}) {
   const [hover, setHover] = useState(false);
   return (
     <button
       type="button"
-      aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      aria-expanded={!collapsed}
-      onClick={toggle}
+      aria-label={label}
+      aria-expanded={expanded}
+      onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
@@ -228,8 +282,15 @@ function CollapseButton() {
 
 // ---- Nav group -----------------------------------------------------------
 
-function NavGroup({ label, items }: { label: string; items: NavItem[] }) {
-  const { collapsed } = useSidebar();
+function NavGroup({
+  label,
+  items,
+  collapsed,
+}: {
+  label: string;
+  items: NavItem[];
+  collapsed: boolean;
+}) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[4] }}>
       {!collapsed && (
@@ -258,7 +319,7 @@ function NavGroup({ label, items }: { label: string; items: NavItem[] }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE[2] }}>
         {items.map((item) => (
-          <NavRow key={item.label} {...item} />
+          <NavRow key={item.label} {...item} collapsed={collapsed} />
         ))}
       </div>
     </div>
@@ -267,8 +328,13 @@ function NavGroup({ label, items }: { label: string; items: NavItem[] }) {
 
 // ---- Nav row -------------------------------------------------------------
 
-function NavRow({ to, label, icon, end }: NavItem) {
-  const { collapsed } = useSidebar();
+function NavRow({
+  to,
+  label,
+  icon,
+  end,
+  collapsed,
+}: NavItem & { collapsed: boolean }) {
   const [hover, setHover] = useState(false);
 
   const rowStyle = (isActive: boolean) =>
@@ -303,9 +369,12 @@ function NavRow({ to, label, icon, end }: NavItem) {
     whiteSpace: 'nowrap' as const,
   };
 
-  const content = (isActive: boolean) => (
+  const content = () => (
     <>
-      <span style={{ display: 'inline-flex', flexShrink: 0 }} title={collapsed ? label : undefined}>
+      <span
+        style={{ display: 'inline-flex', flexShrink: 0 }}
+        title={collapsed ? label : undefined}
+      >
         {icon}
       </span>
       {!collapsed && (
@@ -313,23 +382,8 @@ function NavRow({ to, label, icon, end }: NavItem) {
           <p style={labelStyle}>{label}</p>
         </div>
       )}
-      {/* Suppress unused param warning */}
-      {isActive ? null : null}
     </>
   );
-
-  if (to === '#') {
-    return (
-      <span
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
-        title={collapsed ? label : undefined}
-        style={{ ...rowStyle(false), cursor: 'pointer' }}
-      >
-        {content(false)}
-      </span>
-    );
-  }
 
   return (
     <NavLink
@@ -341,15 +395,14 @@ function NavRow({ to, label, icon, end }: NavItem) {
       style={({ isActive }) => rowStyle(isActive)}
       title={collapsed ? label : undefined}
     >
-      {({ isActive }) => content(isActive)}
+      {content()}
     </NavLink>
   );
 }
 
 // ---- Documentation -------------------------------------------------------
 
-function DocumentationLink() {
-  const { collapsed } = useSidebar();
+function DocumentationLink({ collapsed }: { collapsed: boolean }) {
   const [hover, setHover] = useState(false);
   return (
     <a
@@ -377,7 +430,15 @@ function DocumentationLink() {
     >
       <FileText {...iconProps} />
       {!collapsed && (
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: SPACE[4] }}>
+        <div
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: SPACE[4],
+          }}
+        >
           <p
             style={{
               margin: 0,
@@ -402,7 +463,11 @@ function DocumentationLink() {
               color: COLORS.ink[600],
             }}
           >
-            <ExternalLink size={ICON.nav} strokeWidth={ICON.strokeWidth} aria-hidden />
+            <ExternalLink
+              size={ICON.nav}
+              strokeWidth={ICON.strokeWidth}
+              aria-hidden
+            />
           </div>
         </div>
       )}
@@ -412,8 +477,7 @@ function DocumentationLink() {
 
 // ---- Sign-in -------------------------------------------------------------
 
-function SignInRow() {
-  const { collapsed } = useSidebar();
+function SignInRow({ collapsed }: { collapsed: boolean }) {
   return (
     <button
       type="button"
@@ -441,7 +505,11 @@ function SignInRow() {
       }}
     >
       {collapsed ? (
-        <ArrowRight size={ICON.button} strokeWidth={ICON.strokeWidth} aria-hidden />
+        <ArrowRight
+          size={ICON.button}
+          strokeWidth={ICON.strokeWidth}
+          aria-hidden
+        />
       ) : (
         <>Sign in →</>
       )}

@@ -1,5 +1,6 @@
 import { Code2, Settings as SettingsIcon } from 'lucide-react';
 import Button from '../../../components/ui/Button';
+import MenuButton from '../../../components/layout/MenuButton';
 import Switch from '../../../components/ui/Switch';
 import {
   COLORS,
@@ -12,6 +13,7 @@ import {
   RADIUS,
   SPACE,
 } from '../../../constants';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 
 type Props = {
   errorDemo: boolean;
@@ -23,6 +25,8 @@ type Props = {
 /**
  * Sticky page header — title + Error demo toggle + settings gear + Get Code.
  * The gear toggles the right-hand Chat Settings sidebar.
+ * On mobile: shows a menu button on the left, hides the subtitle and "Get Code"
+ * button so the essential controls (error demo + settings) fit on a phone.
  */
 export default function InferenceHeader({
   errorDemo,
@@ -30,16 +34,17 @@ export default function InferenceHeader({
   settingsOpen,
   onSettingsToggle,
 }: Props) {
+  const isMobile = useIsMobile();
   return (
     <header
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: SPACE[6],
+        gap: isMobile ? SPACE[3] : SPACE[6],
         paddingTop: SPACE[8],
         paddingBottom: SPACE[8],
-        paddingLeft: SPACE[12],
-        paddingRight: SPACE[12],
+        paddingLeft: isMobile ? SPACE[6] : SPACE[12],
+        paddingRight: isMobile ? SPACE[6] : SPACE[12],
         borderBottom: `1px solid ${COLORS.border.DEFAULT}`,
         backgroundColor: COLORS.surface,
         position: 'sticky',
@@ -48,6 +53,7 @@ export default function InferenceHeader({
         flexShrink: 0,
       }}
     >
+      <MenuButton />
       <div style={{ flex: 1, minWidth: 0 }}>
         <h2
           style={{
@@ -58,41 +64,56 @@ export default function InferenceHeader({
             color: COLORS.ink[900],
             letterSpacing: LETTER_SPACING.tight,
             lineHeight: LINE_HEIGHT.tight,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}
         >
-          Inference Playground
+          {isMobile ? 'Inference' : 'Inference Playground'}
         </h2>
-        <p
-          style={{
-            margin: 0,
-            marginTop: SPACE[2],
-            fontFamily: FONTS.sans,
-            fontSize: FONT_SIZE.md,
-            color: COLORS.ink[600],
-            lineHeight: LINE_HEIGHT.relaxed,
-          }}
-        >
-          Token-by-token streaming with live metrics
-        </p>
+        {!isMobile && (
+          <p
+            style={{
+              margin: 0,
+              marginTop: SPACE[2],
+              fontFamily: FONTS.sans,
+              fontSize: FONT_SIZE.md,
+              color: COLORS.ink[600],
+              lineHeight: LINE_HEIGHT.relaxed,
+            }}
+          >
+            Token-by-token streaming with live metrics
+          </p>
+        )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[3] }}>
-        <span
-          style={{
-            fontFamily: FONTS.sans,
-            fontSize: FONT_SIZE.sm,
-            color: COLORS.ink[600],
-            lineHeight: LINE_HEIGHT.tight,
-          }}
-        >
-          Error demo
-        </span>
+      {!isMobile && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: SPACE[3] }}>
+          <span
+            style={{
+              fontFamily: FONTS.sans,
+              fontSize: FONT_SIZE.sm,
+              color: COLORS.ink[600],
+              lineHeight: LINE_HEIGHT.tight,
+            }}
+          >
+            Error demo
+          </span>
+          <Switch
+            checked={errorDemo}
+            onChange={onErrorDemoChange}
+            ariaLabel="Simulate a mid-stream error"
+          />
+        </div>
+      )}
+
+      {isMobile && (
         <Switch
           checked={errorDemo}
           onChange={onErrorDemoChange}
           ariaLabel="Simulate a mid-stream error"
         />
-      </div>
+      )}
 
       <button
         type="button"
@@ -104,6 +125,7 @@ export default function InferenceHeader({
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
+          flexShrink: 0,
           width: SPACE[18],
           height: SPACE[18],
           borderRadius: RADIUS.pill,
@@ -122,15 +144,21 @@ export default function InferenceHeader({
         />
       </button>
 
-      <Button
-        variant="outlined"
-        size="sm"
-        leftIcon={
-          <Code2 size={ICON.button} strokeWidth={ICON.strokeWidth} aria-hidden />
-        }
-      >
-        Get Code
-      </Button>
+      {!isMobile && (
+        <Button
+          variant="outlined"
+          size="sm"
+          leftIcon={
+            <Code2
+              size={ICON.button}
+              strokeWidth={ICON.strokeWidth}
+              aria-hidden
+            />
+          }
+        >
+          Get Code
+        </Button>
+      )}
     </header>
   );
 }

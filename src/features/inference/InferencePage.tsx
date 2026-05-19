@@ -31,8 +31,10 @@ export default function InferencePage() {
   const [elapsed, setElapsed] = useState(0);
   const [model, setModel] = useState(DEFAULT_MODEL);
 
-  // Chat-settings state — drives the right-hand sidebar
-  const [settingsOpen, setSettingsOpen] = useState(true);
+  // Chat-settings state — drives the right-hand sidebar. Default closed so
+  // the playground itself is the first thing the user sees; the gear button
+  // in the header opens it on demand.
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [contextWindow, setContextWindow] = useState<string>(DEFAULT_CONTEXT_WINDOW);
   const [systemInstructions, setSystemInstructions] = useState(
     DEFAULT_SYSTEM_INSTRUCTIONS,
@@ -126,7 +128,7 @@ export default function InferencePage() {
       />
 
       <div
-        className="flex-col md:flex-row"
+        className="flex-col-reverse md:flex-row"
         style={{ display: 'flex', flex: 1, minHeight: 0 }}
       >
         <PromptColumn

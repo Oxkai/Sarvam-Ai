@@ -9,6 +9,7 @@ import {
   RADIUS,
   SPACE,
 } from '../../../constants';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 import type { ViewMode } from '../config';
 import Legend from './Legend';
 import StreamingChip from './StreamingChip';
@@ -40,17 +41,18 @@ export default function ViewControls({
   isRunning,
   hasGenerated,
 }: Props) {
+  const isMobile = useIsMobile();
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: SPACE[4],
-        paddingLeft: SPACE[12],
-        paddingRight: SPACE[12],
-        paddingTop: SPACE[6],
-        paddingBottom: SPACE[6],
+        gap: SPACE[3],
+        paddingLeft: isMobile ? SPACE[6] : SPACE[12],
+        paddingRight: isMobile ? SPACE[6] : SPACE[12],
+        paddingTop: isMobile ? SPACE[4] : SPACE[6],
+        paddingBottom: isMobile ? SPACE[4] : SPACE[6],
         borderBottom: `1px solid ${COLORS.border.DEFAULT}`,
         flexShrink: 0,
         flexWrap: 'wrap',
@@ -72,7 +74,7 @@ export default function ViewControls({
           activeId={viewMode}
           onChange={(id) => onViewModeChange(id as ViewMode)}
         />
-        {hasGenerated && (
+        {hasGenerated && !isMobile && (
           <span
             style={{
               fontFamily: FONTS.sans,
@@ -127,10 +129,10 @@ export default function ViewControls({
           ) : (
             <Eye size={12} strokeWidth={ICON.strokeWidth} aria-hidden />
           )}
-          Changes only
+          {isMobile ? 'Changes' : 'Changes only'}
         </button>
         )}
-        <Legend />
+        {!isMobile && <Legend />}
       </div>
     </div>
   );

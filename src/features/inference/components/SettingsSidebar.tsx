@@ -13,6 +13,7 @@ import {
   RADIUS,
   SPACE,
 } from '../../../constants';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 import {
   CONTEXT_WINDOWS,
   hueForModel,
@@ -63,27 +64,61 @@ export default function SettingsSidebar({
   onReasoningEffortChange,
   onClose,
 }: Props) {
+  const isMobile = useIsMobile();
+
+  const desktopStyle: React.CSSProperties = {
+    width: isOpen ? 340 : 0,
+    minWidth: isOpen ? 340 : 0,
+    flexShrink: 0,
+    borderLeft: `1px solid ${isOpen ? COLORS.border.DEFAULT : 'transparent'}`,
+    backgroundColor: COLORS.surface,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    transition: 'width 200ms ease, min-width 200ms ease, border-color 200ms ease',
+  };
+
+  const mobileStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    bottom: 0,
+    right: 0,
+    width: '88vw',
+    maxWidth: 360,
+    zIndex: 60,
+    transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
+    borderLeft: `1px solid ${COLORS.border.DEFAULT}`,
+    boxShadow: isOpen ? '-10px 0 30px rgba(0,0,0,0.25)' : 'none',
+    backgroundColor: COLORS.surface,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    transition: 'transform 220ms ease, box-shadow 220ms ease',
+  };
+
   return (
+    <>
+      {isMobile && isOpen && (
+        <button
+          type="button"
+          aria-label="Close settings"
+          onClick={onClose}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 55,
+            background: 'rgba(0,0,0,0.4)',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            animation: 'fadeIn 160ms ease-out',
+          }}
+        />
+      )}
     <aside
       aria-label="Chat settings"
       aria-hidden={!isOpen}
-      style={{
-        // Width and min-width transition together — Sarvam pattern. Border
-        // also fades so there's no stray vertical line when collapsed.
-        width: isOpen ? 340 : 0,
-        minWidth: isOpen ? 340 : 0,
-        flexShrink: 0,
-        borderLeft: `1px solid ${
-          isOpen ? COLORS.border.DEFAULT : 'transparent'
-        }`,
-        backgroundColor: COLORS.surface,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        // Same timing curve as the app sidebar (Sidebar.tsx uses 200ms ease)
-        transition:
-          'width 200ms ease, min-width 200ms ease, border-color 200ms ease',
-      }}
+      style={isMobile ? mobileStyle : desktopStyle}
     >
       {/* Header — px-8 pt-8 pb-6 in tatva units */}
       <div
@@ -244,6 +279,7 @@ export default function SettingsSidebar({
         </Field>
       </div>
     </aside>
+    </>
   );
 }
 

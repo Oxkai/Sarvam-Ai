@@ -15,6 +15,7 @@ import {
   ICON,
   SPACE,
 } from '../../../constants';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 import { hueForModel } from '../config';
 import EmptyOutputState from './EmptyOutputState';
 import IconActionButton from './IconActionButton';
@@ -59,6 +60,7 @@ export default function OutputColumn({
   model,
 }: Props) {
   const hasInteracted = isStreaming || status === 'done' || status === 'error';
+  const isMobile = useIsMobile();
 
   return (
     <div
@@ -67,11 +69,15 @@ export default function OutputColumn({
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        paddingLeft: SPACE[6],
-        paddingRight: SPACE[12],
-        paddingTop: SPACE[12],
-        paddingBottom: SPACE[12],
-        gap: SPACE[6],
+        paddingLeft: isMobile ? SPACE[6] : SPACE[6],
+        paddingRight: isMobile ? SPACE[6] : SPACE[12],
+        paddingTop: isMobile ? SPACE[6] : SPACE[12],
+        paddingBottom: isMobile ? SPACE[6] : SPACE[12],
+        gap: SPACE[4],
+        // Mobile only: fill the remaining vertical space above the input bar.
+        // On desktop, default flex behavior (with md:w-1/2 basis) keeps the
+        // two columns balanced as the settings drawer opens / closes.
+        ...(isMobile ? { flex: 1, minHeight: 0 } : null),
       }}
     >
       {/* Zone 1 — status (streaming/error only) + metrics */}

@@ -2,6 +2,7 @@ import AccentOrb from '../../../components/ui/AccentOrb';
 import Dropdown from '../../../components/ui/Dropdown';
 import SegmentedControl from '../../../components/ui/SegmentedControl';
 import { COLORS, SPACE } from '../../../constants';
+import { useIsMobile } from '../../../hooks/useIsMobile';
 import {
   hueForModel,
   MODELS,
@@ -47,6 +48,7 @@ export default function PromptColumn({
   onModelChange,
 }: Props) {
   const hasPrompt = prompt.trim().length > 0;
+  const isMobile = useIsMobile();
 
   return (
     <div
@@ -56,11 +58,23 @@ export default function PromptColumn({
         flexDirection: 'column',
         backgroundColor: COLORS.surface,
         overflow: 'hidden',
-        paddingLeft: SPACE[12],
-        paddingRight: SPACE[6],
-        paddingTop: SPACE[12],
-        paddingBottom: SPACE[12],
-        gap: SPACE[6],
+        // Asymmetric desktop padding (12 / 6) leaves room for the right column;
+        // on mobile both columns stack so the gutter is symmetric.
+        paddingLeft: isMobile ? SPACE[6] : SPACE[12],
+        paddingRight: isMobile ? SPACE[6] : SPACE[6],
+        paddingTop: isMobile ? SPACE[6] : SPACE[12],
+        paddingBottom: isMobile ? SPACE[6] : SPACE[12],
+        gap: SPACE[4],
+        // Mobile only: pin to bottom (via parent's flex-col-reverse) and lock
+        // height so the output area stays the dominant zone. On desktop, let
+        // the default flex behavior shrink the column when the settings
+        // drawer opens — otherwise only one side gives up space.
+        ...(isMobile
+          ? {
+              flexShrink: 0,
+              borderTop: `1px solid ${COLORS.border.DEFAULT}`,
+            }
+          : null),
       }}
     >
       {/* Zone 1 */}
@@ -92,8 +106,16 @@ export default function PromptColumn({
         />
       </div>
 
-      {/* Zone 2 */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+      {/* Zone 2 — on mobile the prompt sits in a bottom bar, so cap its
+          height so it doesn't push the output off-screen. */}
+      <div
+        style={{
+          flex: isMobile ? '0 0 auto' : 1,
+          display: 'flex',
+          minHeight: 0,
+          height: isMobile ? 140 : undefined,
+        }}
+      >
         {inputMode === 'text' ? (
           <TextPromptCard
             value={prompt}

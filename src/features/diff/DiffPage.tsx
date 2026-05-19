@@ -5,6 +5,7 @@ import PromptPanel from './components/PromptPanel';
 import SplitView from './components/SplitView';
 import UnifiedView from './components/UnifiedView';
 import ViewControls from './components/ViewControls';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import {
   DEFAULT_MODEL_A,
   DEFAULT_MODEL_B,
@@ -28,6 +29,8 @@ import { streamInto } from './lib/parallelStream';
  * under ./components.
  */
 export default function DiffPage() {
+  const isMobile = useIsMobile();
+
   // -------- state --------
   // Fresh empty state — user lands with no prompt and no outputs, types a
   // prompt, hits Run, and only then sees streaming + diff. Matches the
@@ -152,10 +155,16 @@ export default function DiffPage() {
         hasGenerated={hasGenerated}
       />
 
-      {/* Scrollable diff area */}
+      {/* Diff area — desktop: independent inner scroll inside a fixed page
+          height. Mobile: defer to the page (Layout) scroll so the user can
+          flick through both stacked cards naturally without nested scroll. */}
       <div
         className="scrollbar-hide"
-        style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}
+        style={
+          isMobile
+            ? { flex: 'none' }
+            : { flex: 1, overflowY: 'auto', minHeight: 0 }
+        }
       >
         {viewMode === 'split' ? (
           <SplitView

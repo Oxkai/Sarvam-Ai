@@ -9,6 +9,7 @@ import {
   LINE_HEIGHT,
   SPACE,
 } from '../../constants';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 type Props = {
   title: string;
@@ -32,12 +33,13 @@ export default function DashboardSection({
   onCta,
   children,
 }: Props) {
+  const isMobile = useIsMobile();
   return (
     <section
       className="flex-col md:flex-row md:items-start"
       style={{
         display: 'flex',
-        gap: SPACE[24], // 48px on md+; collapses on mobile
+        gap: isMobile ? SPACE[8] : SPACE[24],
         alignItems: 'flex-start',
       }}
     >
@@ -46,7 +48,7 @@ export default function DashboardSection({
           display: 'flex',
           flexDirection: 'column',
           gap: SPACE[4], // 8px — gap-tatva-4 between h2 / p / button-container
-          width: '45%',
+          width: isMobile ? '100%' : '45%',
           flexShrink: 0,
         }}
       >
@@ -87,7 +89,7 @@ export default function DashboardSection({
           display: 'flex',
           flexDirection: 'column',
           gap: SPACE[8], // 16px — gap-tatva-8 between voice cards
-          width: '55%',
+          width: isMobile ? '100%' : '55%',
           minWidth: 0,
         }}
       >
